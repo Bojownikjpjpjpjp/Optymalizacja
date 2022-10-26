@@ -96,53 +96,57 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 		A.fit_fun(ff, ud1, ud2);
 		B.fit_fun(ff, ud1, ud2);
 		C.fit_fun(ff, ud1, ud2);
+		//solution A1, B1, C1, D1;
 		double l, m;
 		while (true)
 		{
-			//tu kod funkcji
-			l = m2d((A.y) * (pow(B.x, 2) - pow(C.x, 2) + (B.y)) *
-				(pow(C.x, 2) - pow(A.x, 2)) + C.y * (pow(A.x, 2) - pow(B.x, 2)));
-			m = m2d(((A.y) * (B.x) - (C.x) + (B.y)) *
-				((C.x - A.x) + C.y * ((A.x) - (B.x))));
+			l = m2d(A.y * (pow(B.x) - pow(C.x)) + B.y * (pow(C.x) - pow(A.x)) + C.y * (pow(A.x) - pow(B.x)));
+			m = m2d(A.y * (B.x - C.x) + B.y * (C.x - A.x) + C.y * (A.x - B.x));
 			if (m <= 0)
 			{
 				Xopt = D_old;
 				Xopt.flag = 2;
-				return 0;
+				return Xopt;
 			}
 			D.x = 0.5 * l / m;
 			D.fit_fun(ff, ud1, ud2);
 			if (A.x <= D.x && D.x <= C.x)
 			{
-				if (D.y < C.y)
-				{
-					B = C;
+				if (D.fit_fun(ff, ud1, ud2) < C.fit_fun(ff, ud1, ud2)) {
+					A = A;
 					C = D;
+					B = C;
 				}
-				else
-				{
+				else {
 					A = D;
+					C = C;
+					B = B;
+				}
+			}
+			else if (C.x <= D.x && D.x <= B.x)
+			{
+				if (D.fit_fun(ff, ud1, ud2) < C.fit_fun(ff, ud1, ud2)) {
+					A = C;
+					C = D;
+					B = B;
+				}
+				else {
+					A = A;
+					C = C;
+					B = D;
 				}
 			}
 			else
 			{
-				if (C.x <= D.x && D.x <= B.x) {
-					
-					if (D.y < C.y)
-					{
-						A = C;
-						C = D;
-					}
-					else
-					{
-						B = D;
-					}
-				}
+				Xopt = D_old;
+				Xopt.flag = 2;
+				return Xopt;
 			}
 			Xopt.ud.add_row((B.x - A.x)());
 			if (B.x - A.x < epsilon || abs(D.x() - D_old.x()) < gamma)
 			{
 				Xopt = D;
+				Xopt.flag = 0;
 				break;
 			}
 			if (solution::f_calls > Nmax)
